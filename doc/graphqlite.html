@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en-US" prefix="og: http://ogp.me/ns#" class="no-js">
+<head>
+    <meta charset="utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>GraphQL with GraphQLite integration | TDBM</title>
+
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/dist/img/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/dist/img/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/dist/img/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/dist/img/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/dist/img/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/dist/img/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/dist/img/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/dist/img/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/dist/img/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/dist/img/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/dist/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/dist/img/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/dist/img/favicon/favicon-16x16.png">
+
+    <link href="//fonts.googleapis.com/css?family=Roboto:400,700,300,500" rel="stylesheet" type="text/css">
+
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/dist/img/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta name="msapplication-TileColor" content="#f01d4f">
+    <meta name="msapplication-TileImage" content="//www.thecodingmachine.com/wp-content/themes/thecodingmachine/library/images/win8-tile-icon.png">
+
+    <script>
+        window.resourceBaseUrl = 'https://thecodingmachine.github.io/tdbm';
+    </script>
+
+    <style>
+        /** quick fix because bootstrap <pre> has a background-color. */
+        pre code { background-color: inherit; }
+    </style>
+
+    <link rel="stylesheet" type="text/css" href="https://thecodingmachine.github.io/tdbm/assets/main.css">
+                
+
+    <link rel='stylesheet' id='font-awesome-css'  href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css' type='text/css' media='all' />
+    <link rel='stylesheet' id='google-roboto-css'  href='//fonts.googleapis.com/css?family=Roboto%3A100%2C400%2C300%2C400italic%2C500%2C700' type='text/css' media='all' />
+
+    <style>
+        pre.hljs {padding: 5px;}
+        pre.hljs code {}
+            </style>
+        <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-10196481-4', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+    </head>
+<body class="">
+
+<!-- Navigation -->
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div >
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <img class="img-responsive" src="https://thecodingmachine.github.io/tdbm/doc/images/logo.png" alt="" style="position: absolute;">
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav text-left">
+                <li><a href="https://thecodingmachine.github.io/tdbm/">ABOUT</a></li>
+                                                            <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                                Introduction
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                                Installing TDBM
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_laravel.html">
+                                Install in Laravel
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_lumen.html">
+                                Install in Lumen
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_symfony.html">
+                                Install in Symfony
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_silex.html">
+                                Install in Silex
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_mouf.html">
+                                Install in Mouf
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/manual_install.html">
+                                Manual install
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/install_service-provider.html">
+                                Install with container-interop/service-provider
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                                Getting started
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                                Playing with result sets
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                                About DAOs
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/annotations.html">
+                                Annotations
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                                Advanced filtering
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                                Modeling inheritance
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                                JSON serialization
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                                Miscellaneous features
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                                Memory management and batches processing
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                                Configuring naming of beans and DAOs
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                                A quick comparison with Doctrine
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                                Migrating
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/compatibility.html">
+                                Databases compatibility
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                                TDBM internals
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/customizing_code_generation.html">
+                                Customizing code generation
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
+                                Frequently asked questions
+                            </a>
+                        </li>
+                                                                                                                    <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/fluid_schema_builder.html">
+                                Fluid schema builder
+                            </a>
+                        </li>
+                                                                                <li class=" visible-xs-block">
+                            <a href="https://thecodingmachine.github.io/tdbm/doc/graphqlite.html">
+                                GraphQLite
+                            </a>
+                        </li>
+                                                    <li><a href="http://www.thecodingmachine.com/">TheCodingMachine</a></li>
+                                <li><a href="https://github.com/thecodingmachine/tdbm"><img src="https://thecodingmachine.github.io/tdbm/img/GitHub-Mark-Light-20px.png" /> Github</a></li>
+                            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+<!-- Full Width Image Header with Logo -->
+<!-- Image backgrounds are set within the full-width-pics.css file. -->
+<div id="wrapper">
+    <a href="#menu-toggle" class="burger-position" id="menu-toggle" ><img src="https://thecodingmachine.github.io/tdbm/doc/images/hamburger.png"> </a>
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/index.html">
+                            Introduction
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Installation</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install.html">
+                            Installing TDBM
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_laravel.html">
+                            Install in Laravel
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_lumen.html">
+                            Install in Lumen
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_symfony.html">
+                            Install in Symfony
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_silex.html">
+                            Install in Silex
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_mouf.html">
+                            Install in Mouf
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/manual_install.html">
+                            Manual install
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/install_service-provider.html">
+                            Install with container-interop/service-provider
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Basics</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/quickstart.html">
+                            Getting started
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/limit_offset_resultset.html">
+                            Playing with result sets
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/generating_daos.html">
+                            About DAOs
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Advanced</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/annotations.html">
+                            Annotations
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/advanced.html">
+                            Advanced filtering
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/modeling_inheritance.html">
+                            Modeling inheritance
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/json_serialization.html">
+                            JSON serialization
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/miscellaneous.html">
+                            Miscellaneous features
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/memory_management.html">
+                            Memory management and batches processing
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/configuring_naming.html">
+                            Configuring naming of beans and DAOs
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/comparison_with_doctrine.html">
+                            A quick comparison with Doctrine
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/migrating.html">
+                            Migrating
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/compatibility.html">
+                            Databases compatibility
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/internals.html">
+                            TDBM internals
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/customizing_code_generation.html">
+                            Customizing code generation
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/faq.html">
+                            Frequently asked questions
+                        </a>
+                    </li>
+                                                                <li>
+                        <h4>Integrations and extensions</h4>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/fluid_schema_builder.html">
+                            Fluid schema builder
+                        </a>
+                    </li>
+                                                                <li class="">
+                        <a href="https://thecodingmachine.github.io/tdbm/doc/graphqlite.html">
+                            GraphQLite
+                        </a>
+                    </li>
+                                    </ul>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <header class="image-bg-fluid-height skew">
+            <div class="wrapper content">
+                <!-- /
+              <h4 class="glitch">DISCOVERY</h4>
+               -->
+            </div>
+
+        </header>
+        <div class="container pt100">
+            <div class="row">
+                <div class="col-xs-12">
+                    <h1>GraphQL with GraphQLite integration <small></small></h1>                    <p>TDBM offers a native integration with <a href="https://graphqlite.thecodingmachine.io/">GraphQLite</a></p>
+<p>GraphQLite is a PHP library to easily develop a GraphQL library. GraphQLite core principle is
+to declare GraphQL types using PHP annotations.</p>
+<p>For instance:</p>
+<pre><code class="language-php">/**
+ * @Type()
+ */
+class Product
+{
+    // ...
+
+    /**
+     * @Field()
+     */
+    public function getName(): string
+    {
+        return $this-&gt;name;
+    }
+}</code></pre>
+<p>However, in TDBM, the classes and getters are generated by TDBM itself. The getters are in the
+generated abstract classes and you cannot edit those files (as they are overwritten by TDBM each
+time you generate the beans and DAOs).</p>
+<p>TDBM-GraphQL is a library that can read annotations <strong>from the database model</strong> and forward those
+annotations to the PHP classes.</p>
+<p>You put <code>@Type</code> or <code>@Field</code> annotations in your database tables and columns and TDBM will generate
+these annotations in the beans and DAOs.</p>
+<h2 id="installation">Installation</h2>
+<h3 id="installation-for-symfony">Installation for Symfony</h3>
+<p>Open a terminal in your current project directory and run:</p>
+<pre><code class="language-bash">$ composer require thecodingmachine/tdbm-graphql-bundle</code></pre>
+<p>If you are using Flex, you are done. Jump to the <a href="#annotating-your-db-model">Annotating your DB model</a> section.</p>
+<p>Not using Flex? Enable the library by adding it to the list of registered bundles in the <code>config/bundles.php</code> file:</p>
+<p><strong>config/bundles.php</strong></p>
+<pre><code class="language-php">return [
+    // ...
+    'TheCodingMachine\\Tdbm\Graphql\\Bundle\\TheCodingMachineTdbmGraphqlBundle' =&gt; ['all' =&gt; true],
+}</code></pre>
+<h3 id="configuration">Configuration</h3>
+<div class="alert alert-warning">Configuration is only needed for tdbm-graphql-bundle version 3.x.
+Starting with tdbm-graphql-bundle v4, there is no configuration necessary, you can completely skip this part.</div>
+<p>The parameters are stored in the <code>config/packages/tdbm-graphql.yaml</code> file.</p>
+<p>By default, generated types will go into <code>App\Types</code>.</p>
+<div class="alert alert-warning">
+If your default namespace for your application is not <code>App</code>, you should open this <code>tdbm-graphql.yaml</code> file and customize the 
+<code>tdbm-graphl.type_namespace</code> and <code>tdbm-graphl.generated_type_namespace</code> (optionnal) to match your application namespace.
+</div>
+<p>Here is a configuration file with all available options:</p>
+<p><strong>config/packages/tdbm-graphql.yaml</strong></p>
+<pre><code class="language-yaml">tdbm-graphql:
+    type_namespace: App\Types
+    generated_type_namespace: App\Types\Generated</code></pre>
+<h3 id="manual-installation">Manual installation</h3>
+<p>Open a terminal in your current project directory and run:</p>
+<pre><code class="language-bash">$ composer require thecodingmachine/tdbm-graphql</code></pre>
+<p>The tdbm-graphql package provides a <code>GraphQLTypeAnnotator</code>. This class alters the way TDBM generates
+the beans and DAOs.</p>
+<p>You must create an instance of this class and register it in the TDBM configuration:</p>
+<pre><code class="language-php">use TheCodingMachine\Tdbm\GraphQL\GraphQLTypeAnnotator;
+use TheCodingMachine\TDBM\Configuration;
+
+// The parameter passed is the namespace in which the classes will be generated
+$annotator = new GraphQLTypeAnnotator('App\\Types\\');
+$configuration = new Configuration(
+    'App\\Beans',
+    'App\\DAOs',
+    $connection,
+    null,
+    new ArrayCache(),
+    null,
+    null,
+    [ $annotator ], // The annotator must be passed to the $generatorListeners parameter
+    null,
+    [ $annotator ] // and also to the $codeGeneratorListeners parameter
+);</code></pre>
+<h2 id="annotating-your-db-model">Annotating your DB model</h2>
+<p>In order to expose a bean as a GraphQL type, you must annotate the database model.</p>
+<p>You can use the same annotations as in GraphQLite (but you must make sure they are fully qualified).</p>
+<p>For each bean, you must put the <code>@Type</code> annotation in the class comment and the <code>@Field</code> annotation
+in each column you want to expose.</p>
+<pre><code class="language-sql">ALTER TABLE users COMMENT '@TheCodingMachine\\GraphQLite\\Annotations\\Type';
+ALTER TABLE users MODIFY COLUMN `name` VARCHAR(255) NOT NULL COMMENT '@TheCodingMachine\\GraphQLite\\Annotations\\Field';</code></pre>
+<p>Adding comments on each column can be tedious. We highly recommend to use
+the <a href="fluid_schema_builder.html">TDBM Fluid Schema Builder</a> to create the schema instead.
+The library provides a number of helpers to create the annotations for you:</p>
+<pre><code class="language-php">$db-&gt;table('users')
+   -&gt;column('name')-&gt;string(50)-&gt;graphqlField();
+   // The graphqlField() method will add the @Field annotation on the column AND the @Type annotation on the class at once.</code></pre>
+<p>Once your data model is commented with the annotations, you just have to regenerate the TDBM DAOs and beans:</p>
+<pre><code class="language-bash">bin/console tdbm:generate</code></pre>
+<p>You can check the getters in the generated beans, they should be annotated with the GraphQLite's <code>@Field</code> annotation.</p>
+<h2 id="additional-annotations-supported">Additional annotations supported</h2>
+<p>TDBM-GraphQL supports additional annotations to manage the fields' visibility:</p>
+<pre><code class="language-sql">ALTER TABLE users MODIFY COLUMN `name` VARCHAR(255) NOT NULL COMMENT '
+  @TheCodingMachine\\GraphQLite\\Annotations\\Field
+  @TheCodingMachine\\GraphQLite\\Annotations\\Logged
+  @TheCodingMachine\\GraphQLite\\Annotations\\Right("CAN_SEE_NAME")
+  @TheCodingMachine\\GraphQLite\\Annotations\\FailWith(null)
+';</code></pre>
+<p>You can find more about <a href="https://graphqlite.thecodingmachine.io/docs/authentication_authorization">these security annotations in the GraphQLite documentation</a>.</p>
+<p>You can also create these annotations using the TDBM Fluid Schema Builder.</p>
+<pre><code class="language-php">$db-&gt;table('users')
+   -&gt;column('name')-&gt;string(50)-&gt;graphqlField()
+   -&gt;logged()-&gt;right('CAN_SEE_NAME')-&gt;failWith(null);</code></pre>
+<h2 id="use-your-beans-as-input-types">Use your beans as input types</h2>
+<p>TDBM will automatically annotate the <code>xxxDao::getById()</code> method with a <code>@Factory</code> annotation.
+As a result, you can directly inject you beans as arguments in your GraphQL queries.</p>
+<p>For instance:</p>
+<pre><code class="language-php">class ProductController
+{
+    // ...
+
+    /**
+     * @Query()
+     * @return ProductResultIterator
+     */
+    public function getProducts(Category $category): array
+    {
+        // ...
+    }
+}</code></pre>
+<p>Assuming &quot;Category&quot; is a bean, TDBM-GraphQL will automatically fetch the bean from the database and populate the <code>$category</code>
+argument with it.</p>
+<p>Your GraphQL query will look like this:</p>
+<pre><code class="language-graphql">{
+    products(category: { id: 42 }) {
+        id
+        name
+    }
+}</code></pre>
+
+                    <p class="fork-and-edit">
+                        Found a typo? Something is wrong in this documentation? Just
+                        <a href="https://github.com/thecodingmachine/tdbm/blob/master/doc/graphqlite.md">fork and edit it</a>!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+</div>
+<div class="footer">
+    <div class="container-fluid">
+        <footer class="row" id="footer">
+            <div class="col-xs-12">
+                Made with <span class="pulse2 glyphicon glyphicon-heart" style="color: red" aria-hidden="true"></span><span class="sr-only">love</span> by <a href="https://www.thecodingmachine.com/"><img src="https://thecodingmachine.github.io/tdbm/img/logo.png" alt="TheCodingMachine"></a> for all open-source lovers
+                <span class="copyright">&copy; 2016 - 2022 <a href="https://www.thecodingmachine.com/">TheCodingMachine</a> - All Rights Reserved</span>
+                Powered by <a href="http://couscous.io/">Couscous</a></span>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- /#wrapper -->
+<script type='text/javascript' src='https://thecodingmachine.github.io/tdbm/assets/app.bundle.js'></script>
+<script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+</script>
+</body>
+</html>
