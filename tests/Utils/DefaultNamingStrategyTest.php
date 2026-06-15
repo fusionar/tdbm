@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace TheCodingMachine\TDBM\Utils;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\MySqlSchemaManager;
 use Doctrine\DBAL\Schema\Schema;
@@ -17,7 +17,7 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
 {
     private function getDefaultNamingStrategy()
     {
-        return new DefaultNamingStrategy(AnnotationParser::buildWithDefaultAnnotations([]), $this->getConnection()->getSchemaManager());
+        return new DefaultNamingStrategy(AnnotationParser::buildWithDefaultAnnotations([]), $this->getConnection()->createSchemaManager());
     }
 
     /**
@@ -124,14 +124,14 @@ class DefaultNamingStrategyTest extends TDBMAbstractServiceTest
         $table = new Table('chevaux');
         $strategy = $this->getDefaultNamingStrategyWithStubTables([$table]);
         $strategy->setExceptions([
-            'chevaux' => 'Cheval'
+            'chevaux' => 'Cheval',
         ]);
         $this->assertSame('ChevalDao', $strategy->getDaoClassName('chevaux'));
     }
 
     public function testBeanAnnotation(): void
     {
-        $table = new Table('chevaux', [], [], [], 0, ['comment'=>'@Bean(name="Cheval")']);
+        $table = new Table('chevaux', [], [], [], [], ['comment' => '@Bean(name="Cheval")']);
         $strategy = $this->getDefaultNamingStrategyWithStubTables([$table]);
         $this->assertSame('ChevalDao', $strategy->getDaoClassName('chevaux'));
     }

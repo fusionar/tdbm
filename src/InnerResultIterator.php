@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
-use Doctrine\DBAL\Statement;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Result;
 use Mouf\Database\MagicQuery;
 use Psr\Log\LoggerInterface;
 use TheCodingMachine\TDBM\Utils\DbalUtils;
@@ -35,8 +34,7 @@ use TheCodingMachine\TDBM\Utils\DbalUtils;
  */
 class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 {
-    /** @var ResultStatement|Statement */
-    protected $statement;
+    protected ?Result $result = null;
 
     /** @var bool */
     protected $fetchStarted = false;
@@ -79,9 +77,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
     /** @var int|null */
     protected $count = null;
 
-    final private function __construct()
-    {
-    }
+    final private function __construct() {}
 
     /**
      * @param mixed[] $parameters
@@ -115,9 +111,9 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
     {
         $sql = $this->getQuery();
 
-        $this->logger->debug('Running SQL request: '.$sql);
+        $this->logger->debug('Running SQL request: ' . $sql);
 
-        $this->statement = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateTypes($this->parameters));
+        $this->result = $this->tdbmService->getConnection()->executeQuery($sql, $this->parameters, DbalUtils::generateTypes($this->parameters));
 
         $this->fetchStarted = true;
     }
@@ -127,7 +123,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         if ($this->count !== null) {
             return $this->count;
@@ -135,8 +131,8 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
 
         if ($this->fetchStarted && $this->tdbmService->getConnection()->getDatabasePlatform() instanceof MySqlPlatform) {
             // Optimisation: we don't need a separate "count" SQL request in MySQL.
-            assert($this->statement instanceof Statement);
-            $this->count = (int)$this->statement->rowCount();
+            assert($this->result instanceof Result);
+            $this->count = (int) $this->result->rowCount();
             return $this->count;
         }
         return $this->getRowCountViaSqlQuery();
@@ -148,11 +144,11 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      */
     private function getRowCountViaSqlQuery(): int
     {
-        $countSql = 'SELECT COUNT(1) FROM ('.$this->getQuery().') c';
+        $countSql = 'SELECT COUNT(1) FROM (' . $this->getQuery() . ') c';
 
-        $this->logger->debug('Running count SQL request: '.$countSql);
+        $this->logger->debug('Running count SQL request: ' . $countSql);
 
-        $this->count = (int) $this->tdbmService->getConnection()->fetchColumn($countSql, $this->parameters, 0, DbalUtils::generateTypes($this->parameters));
+        $this->count = (int) $this->tdbmService->getConnection()->fetchOne($countSql, $this->parameters, DbalUtils::generateTypes($this->parameters));
         return $this->count;
     }
 
@@ -161,7 +157,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @return AbstractTDBMObject
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->current;
     }
@@ -171,7 +167,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @return int
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->key;
     }
@@ -182,7 +178,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      */
     public function next(): void
     {
-        $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
+        $row = $this->result->fetchAssociative();
         if ($row) {
             /** @var array<string, array<string, array<string, mixed>>> $beansData array<tablegroup, array<table, array<column, value>>>*/
             $beansData = [];
@@ -218,7 +214,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
             foreach ($beansData as $beanData) {
                 // Let's find the bean class name associated to the bean.
 
-                list($actualClassName, $mainBeanTableName, $tablesUsed) = $this->tdbmService->_getClassNameFromBeanData($beanData);
+                [$actualClassName, $mainBeanTableName, $tablesUsed] = $this->tdbmService->_getClassNameFromBeanData($beanData);
 
                 // @TODO (gua) this is a weird hack to be able to force a TDBMObject...
                 // `$this->className` could be used to override `$actualClassName`
@@ -243,6 +239,9 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
                 $dbRow = $this->objectStorage->get($mainBeanTableName, $hash);
                 if ($dbRow !== null) {
                     $bean = $dbRow->getTDBMObject();
+                    if ($bean->_getStatus() === TDBMObjectStateEnum::STATE_NOT_LOADED) {
+                        $bean->_constructFromData($beanData, $this->tdbmService);
+                    }
                 } else {
                     // Let's construct the bean
                     if (!isset($reflectionClassCache[$actualClassName])) {
@@ -270,7 +269,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
     /**
      * Moves the cursor to the beginning of the result set.
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->executeQuery();
         $this->key = -1;
@@ -281,7 +280,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->current !== null;
     }
@@ -302,7 +301,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         throw new TDBMInvalidOperationException('You cannot access this result set via index because it was fetched in CURSOR mode. Use ARRAY_MODE instead.');
     }
@@ -320,7 +319,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         throw new TDBMInvalidOperationException('You cannot access this result set via index because it was fetched in CURSOR mode. Use ARRAY_MODE instead.');
     }
@@ -339,7 +338,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new TDBMInvalidOperationException('You cannot set values in a TDBM result set.');
     }
@@ -355,7 +354,7 @@ class InnerResultIterator implements \Iterator, InnerResultIteratorInterface
      *
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new TDBMInvalidOperationException('You cannot unset values in a TDBM result set.');
     }

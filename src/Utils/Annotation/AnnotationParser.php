@@ -74,9 +74,7 @@ class AnnotationParser
 
         // Let's add * in front of the line (otherwise, parsing is failing)
         $lines = explode("\n", $comment);
-        $lines = array_map(function (string $line) {
-            return '* '.$line;
-        }, $lines);
+        $lines = array_map(fn(string $line) => '* ' . $line, $lines);
         $comment = implode("\n", $lines);
 
         $annotations = $this->docParser->parse($comment, $context);
@@ -88,7 +86,7 @@ class AnnotationParser
     {
         $options = $table->getOptions();
         if (isset($options['comment'])) {
-            return $this->parse($options['comment'], ' comment in table '.$table->getName());
+            return $this->parse($options['comment'], 'comment in table `' . $table->getName() . '`');
         }
         return new Annotations([]);
     }
@@ -99,6 +97,6 @@ class AnnotationParser
         if ($comment === null) {
             return new Annotations([]);
         }
-        return $this->parse($comment, sprintf('comment of column %s in table %s', $column->getName(), $table->getName()));
+        return $this->parse($comment, sprintf('comment of column `%s` in table `%s`', $column->getName(), $table->getName()));
     }
 }

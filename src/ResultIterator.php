@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Psr\Log\NullLogger;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
 use TheCodingMachine\TDBM\QueryFactory\QueryFactory;
+use Porpaginas\Result;
 use Psr\Log\LoggerInterface;
 use TheCodingMachine\TDBM\Utils\DbalUtils;
 use Traversable;
@@ -40,7 +41,7 @@ use function is_int;
 /**
  * Iterator used to retrieve results.
  */
-class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
+class ResultIterator implements Result, \ArrayAccess, \JsonSerializable
 {
     /** @var Statement */
     protected $statement;
@@ -72,9 +73,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
     /** @var LoggerInterface */
     private $logger;
 
-    final private function __construct()
-    {
-    }
+    final private function __construct() {}
 
     /**
      * @param mixed[] $parameters
@@ -84,7 +83,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
     {
         $iterator =  new static();
         if ($mode !== TDBMService::MODE_CURSOR && $mode !== TDBMService::MODE_ARRAY) {
-            throw new TDBMException("Unknown fetch mode: '".$mode."'");
+            throw new TDBMException("Unknown fetch mode: '" . $mode . "'");
         }
 
         $iterator->queryFactory = $queryFactory;
@@ -109,8 +108,8 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
     protected function executeCountQuery(): void
     {
         $sql = $this->magicQuery->buildPreparedStatement($this->queryFactory->getMagicSqlCount(), $this->parameters);
-        $this->logger->debug('Running count query: '.$sql);
-        $this->totalCount = (int) $this->tdbmService->getConnection()->fetchColumn($sql, $this->parameters, 0, DbalUtils::generateTypes($this->parameters));
+        $this->logger->debug('Running count query: ' . $sql);
+        $this->totalCount = (int) $this->tdbmService->getConnection()->fetchOne($sql, $this->parameters, DbalUtils::generateTypes($this->parameters));
     }
 
     /**
@@ -160,7 +159,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @return InnerResultIteratorInterface
      */
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         if ($this->innerResultIterator === null) {
             if ($this->totalCount === 0) {
@@ -175,9 +174,15 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
         return $this->innerResultIterator;
     }
 
-    public function take(int $offset, int $limit): PageIterator
+    /**
+     * @param int $offset
+     * @param int $limit
+     *
+     * @return PageIterator
+     */
+    public function take($offset, $limit)
     {
-        if ($this->totalCount === 0) {
+        if ($this instanceof EmptyResultIterator) {
             return PageIterator::createEmpyIterator($this);
         }
         return PageIterator::createResultIterator($this, $this->queryFactory->getMagicSql(), $this->parameters, $limit, $offset, $this->queryFactory->getColumnDescriptors(), $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->mode, $this->logger);
@@ -199,7 +204,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return $this->getIterator()->offsetExists($offset);
     }
@@ -217,7 +222,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->getIterator()->offsetGet($offset);
     }
@@ -236,7 +241,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->getIterator()->offsetSet($offset, $value);
     }
@@ -252,7 +257,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         $this->getIterator()->offsetUnset($offset);
     }
@@ -271,11 +276,9 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.4.0
      */
-    public function jsonSerialize($stopRecursion = false)
+    public function jsonSerialize($stopRecursion = false): mixed
     {
-        return array_map(function (AbstractTDBMObject $item) use ($stopRecursion) {
-            return $item->jsonSerialize($stopRecursion);
-        }, $this->toArray());
+        return array_map(fn(AbstractTDBMObject $item) => $item->jsonSerialize($stopRecursion), $this->toArray());
     }
 
     /**
@@ -371,7 +374,7 @@ class ResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
         $pkDesc = array_pop($primaryKeyColumnDescs);
 
         $mysqlPlatform = new MySqlPlatform();
-        $sql = $mysqlPlatform->quoteIdentifier($pkDesc['table']).'.'.$mysqlPlatform->quoteIdentifier($pkDesc['column']).' IN ('.$sql.')';
+        $sql = $mysqlPlatform->quoteIdentifier($pkDesc['table']) . '.' . $mysqlPlatform->quoteIdentifier($pkDesc['column']) . ' IN (' . $sql . ')';
 
         return $sql;
     }

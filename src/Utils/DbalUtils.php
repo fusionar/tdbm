@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Utils;
 
-use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\ParameterType;
 
 use function is_array;
@@ -27,13 +29,15 @@ class DbalUtils
             if (is_array($value)) {
                 foreach ($value as $val) {
                     if (!is_int($val)) {
-                        $types[$key] = Connection::PARAM_STR_ARRAY;
+                        $types[$key] = ArrayParameterType::STRING;
                         continue 2;
                     }
                 }
-                $types[$key] = Connection::PARAM_INT_ARRAY;
+                $types[$key] = ArrayParameterType::INTEGER;
             } elseif (is_int($value)) {
                 $types[$key] = ParameterType::INTEGER;
+            } elseif (is_bool($value)) {
+                $types[$key] = ParameterType::BOOLEAN;
             }
         }
 

@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM\Performance;
 
 use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\VoidCache;
 use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
@@ -11,7 +12,6 @@ use TheCodingMachine\FluidSchema\TdbmFluidSchema;
 use TheCodingMachine\TDBM\Configuration;
 use TheCodingMachine\TDBM\ConfigurationInterface;
 use TheCodingMachine\TDBM\ConnectionFactory;
-use TheCodingMachine\TDBM\DummyGeneratorListener;
 use TheCodingMachine\TDBM\SchemaLockFileDumper;
 use TheCodingMachine\TDBM\TDBMAbstractServiceTest;
 use TheCodingMachine\TDBM\TDBMSchemaAnalyzer;
@@ -53,7 +53,7 @@ class ManyToOneBench
 
     private static function initSchema(Connection $connection): void
     {
-        $fromSchema = $connection->getSchemaManager()->createSchema();
+        $fromSchema = $connection->createSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
         $db = new TdbmFluidSchema($toSchema, new \TheCodingMachine\FluidSchema\DefaultNamingStrategy($connection->getDatabasePlatform()));
@@ -70,34 +70,34 @@ class ManyToOneBench
         $sqlStmts = $toSchema->getMigrateFromSql($fromSchema, $connection->getDatabasePlatform());
 
         foreach ($sqlStmts as $sqlStmt) {
-            $connection->exec($sqlStmt);
+            $connection->executeStatement($sqlStmt);
         }
 
-        for ($i = 1; $i<200; $i++) {
+        for ($i = 1; $i < 200; $i++) {
             TDBMAbstractServiceTest::insert($connection, 'countries', [
                 'id' => $i,
-                'label' => 'Country '.$i,
+                'label' => 'Country ' . $i,
             ]);
         }
 
-        for ($i = 1; $i<1000; $i++) {
+        for ($i = 1; $i < 1000; $i++) {
             TDBMAbstractServiceTest::insert($connection, 'users', [
                 'id' => $i,
-                'name' => 'User '.$i,
-                'country_id' => ($i%199) +1,
+                'name' => 'User ' . $i,
+                'country_id' => ($i % 199) + 1,
             ]);
         }
     }
 
     private static function generateDaosAndBeans(Connection $connection): void
     {
-        $schemaManager = $connection->getSchemaManager();
+        $schemaManager = $connection->createSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $schemaLockFileDumper = new SchemaLockFileDumper($connection, new ArrayCache(), Configuration::getDefaultLockFilePath());
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($connection, new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
         $tdbmDaoGenerator = new TDBMDaoGenerator(self::createConfiguration(), $tdbmSchemaAnalyzer);
         $rootPath = __DIR__ . '/../';
-        self::recursiveDelete(__DIR__. '/../../src/Test/Dao/');
+        self::recursiveDelete(__DIR__ . '/../../src/Test/Dao/');
 
         $tdbmDaoGenerator->generateAllDaosAndBeans();
     }

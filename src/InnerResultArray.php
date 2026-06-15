@@ -52,7 +52,7 @@ class InnerResultArray extends InnerResultIterator
      *
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         try {
             $this->toIndex($offset);
@@ -76,7 +76,7 @@ class InnerResultArray extends InnerResultIterator
      *
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         $this->toIndex($offset);
 
@@ -90,15 +90,15 @@ class InnerResultArray extends InnerResultIterator
     private function toIndex($offset): void
     {
         if ($offset < 0 || filter_var($offset, FILTER_VALIDATE_INT) === false) {
-            throw new TDBMInvalidOffsetException('Trying to access result set using offset "'.$offset.'". An offset must be a positive integer.');
+            throw new TDBMInvalidOffsetException('Trying to access result set using offset "' . $offset . '". An offset must be a positive integer.');
         }
-        if ($this->statement === null) {
+        if ($this->result === null) {
             $this->executeQuery();
         }
         while (!isset($this->results[$offset])) {
             $this->next();
             if ($this->current === null) {
-                throw new TDBMInvalidOffsetException('Offset "'.$offset.'" does not exist in result set.');
+                throw new TDBMInvalidOffsetException('Offset "' . $offset . '" does not exist in result set.');
             }
         }
     }
@@ -121,7 +121,7 @@ class InnerResultArray extends InnerResultIterator
      * Overloads the rewind implementation.
      * Do not reexecute the query.
      */
-    public function rewind()
+    public function rewind(): void
     {
         if (!$this->fetchStarted) {
             $this->executeQuery();

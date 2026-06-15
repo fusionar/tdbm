@@ -6,6 +6,7 @@ namespace TheCodingMachine\TDBM;
 
 use Doctrine\DBAL\Statement;
 use Mouf\Database\MagicQuery;
+use Porpaginas\Page;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -30,7 +31,7 @@ use Psr\Log\NullLogger;
 /**
  * Iterator used to retrieve results.
  */
-class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
+class PageIterator implements Page, \ArrayAccess, \JsonSerializable
 {
     /** @var Statement */
     protected $statement;
@@ -78,9 +79,7 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
     /** @var LoggerInterface */
     private $logger;
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     /**
      * @param mixed[] $parameters
@@ -117,10 +116,10 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
      *
      * @return InnerResultIteratorInterface
      */
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         if ($this->innerResultIterator === null) {
-            if ($this->parentResult->count() === 0) {
+            if ($this->parentResult instanceof EmptyResultIterator) {
                 $this->innerResultIterator = new EmptyInnerResultIterator();
             } elseif ($this->mode === TDBMService::MODE_CURSOR) {
                 $this->innerResultIterator = InnerResultIterator::createInnerResultIterator($this->magicSql, $this->parameters, $this->limit, $this->offset, $this->columnDescriptors, $this->objectStorage, $this->className, $this->tdbmService, $this->magicQuery, $this->logger);
@@ -132,33 +131,46 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
         return $this->innerResultIterator;
     }
 
-    public function getCurrentOffset(): int
+    /**
+     * @return int
+     */
+    public function getCurrentOffset()
     {
         return $this->offset;
     }
 
-    public function getCurrentPage(): int
+    /**
+     * @return int
+     */
+    public function getCurrentPage()
     {
         return (int) floor($this->offset / $this->limit) + 1;
     }
 
-    public function getCurrentLimit(): int
+    /**
+     * @return int
+     */
+    public function getCurrentLimit()
     {
         return $this->limit;
     }
 
     /**
      * Return the number of results on the current page of the {@link Result}.
+     *
+     * @return int
      */
-    public function count(): int
+    public function count()
     {
         return $this->getIterator()->count();
     }
 
     /**
      * Return the number of ALL results in the paginatable of {@link Result}.
+     *
+     * @return int
      */
-    public function totalCount(): int
+    public function totalCount()
     {
         return $this->parentResult->count();
     }
@@ -204,7 +216,7 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return $this->getIterator()->offsetExists($offset);
     }
@@ -222,7 +234,7 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->getIterator()->offsetGet($offset);
     }
@@ -241,7 +253,7 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->getIterator()->offsetSet($offset, $value);
     }
@@ -257,7 +269,7 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         $this->getIterator()->offsetUnset($offset);
     }
@@ -272,10 +284,8 @@ class PageIterator implements PageInterface, \ArrayAccess, \JsonSerializable
      *
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
-        return array_map(function (AbstractTDBMObject $item) {
-            return $item->jsonSerialize();
-        }, $this->toArray());
+        return array_map(fn(AbstractTDBMObject $item) => $item->jsonSerialize(), $this->toArray());
     }
 }

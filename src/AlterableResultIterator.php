@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
+use Porpaginas\Arrays\ArrayPage;
+use Porpaginas\Iterator;
+use Porpaginas\Result;
+
 /**
  * This class acts as a wrapper around a result iterator.
  * It can be used to add or remove results from a ResultIterator (or any kind a traversable collection).
  *
  * Note: in the case of TDBM, this is useful to manage many to one relationships
  */
-class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSerializable
+class AlterableResultIterator implements Result, \ArrayAccess, \JsonSerializable
 {
     /**
      * @var \Traversable|null
@@ -140,7 +144,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->toArray()[$offset]);
     }
@@ -158,7 +162,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->toArray()[$offset];
     }
@@ -177,7 +181,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new TDBMInvalidOperationException('You can set values in a TDBM result set, even in an alterable one. Use the add method instead.');
     }
@@ -193,15 +197,21 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new TDBMInvalidOperationException('You can unset values in a TDBM result set, even in an alterable one. Use the delete method instead.');
     }
 
-    public function take(int $offset, int $limit): PageInterface
+    /**
+     * @param int $offset
+     * @param int $limit
+     *
+     * @return \Porpaginas\Page
+     */
+    public function take($offset, $limit)
     {
         // TODO: replace this with a class implementing the map method.
-        return new PageArray(array_slice($this->toArray(), $offset, $limit), $offset, $limit, count($this->toArray()));
+        return new ArrayPage(array_slice($this->toArray(), $offset, $limit), $offset, $limit, count($this->toArray()));
     }
 
     /**
@@ -209,7 +219,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         if ($this->resultIterator instanceof \Countable && $this->alterations->count() === 0) {
             return $this->resultIterator->count();
@@ -222,7 +232,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @return \Traversable
      */
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         if ($this->alterations->count() === 0) {
             if ($this->resultIterator !== null) {
@@ -245,7 +255,7 @@ class AlterableResultIterator implements ResultInterface, \ArrayAccess, \JsonSer
      *
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return $this->toArray();
     }

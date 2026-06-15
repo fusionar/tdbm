@@ -10,9 +10,6 @@ use Doctrine\DBAL\Connection;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use TheCodingMachine\TDBM\Schema\LockFileSchemaManager;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
-use TheCodingMachine\TDBM\Utils\Annotation\Autoincrement;
-use TheCodingMachine\TDBM\Utils\Annotation\UUID;
-use TheCodingMachine\TDBM\Utils\BaseCodeGeneratorListener;
 use TheCodingMachine\TDBM\Utils\CodeGeneratorEventDispatcher;
 use TheCodingMachine\TDBM\Utils\CodeGeneratorListenerInterface;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
@@ -23,6 +20,9 @@ use TheCodingMachine\TDBM\Utils\PathFinder\PathFinderInterface;
 use Psr\Log\LoggerInterface;
 use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\RootProjectLocator;
+
+use function hash;
+use function serialize;
 
 class Configuration implements ConfigurationInterface
 {
@@ -120,7 +120,7 @@ class Configuration implements ConfigurationInterface
         }
         $this->lockFilePath = $lockFilePath;
         $schemaLockFileDumper = new SchemaLockFileDumper($this->connection, $this->cache, $this->getLockFilePath());
-        $lockFileSchemaManager = new LockFileSchemaManager($this->connection->getSchemaManager(), $schemaLockFileDumper);
+        $lockFileSchemaManager = new LockFileSchemaManager($this->connection->createSchemaManager(), $schemaLockFileDumper);
         if ($schemaAnalyzer !== null) {
             $this->schemaAnalyzer = $schemaAnalyzer;
         } else {
@@ -221,7 +221,7 @@ class Configuration implements ConfigurationInterface
      */
     private function getConnectionUniqueId(): string
     {
-        return hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
+        return hash('md4', serialize($this->connection->getParams()));
     }
 
     /**
@@ -256,7 +256,7 @@ class Configuration implements ConfigurationInterface
      */
     public static function getDefaultLockFilePath(): string
     {
-        return RootProjectLocator::getRootLocationPath().'tdbm.lock.yml';
+        return RootProjectLocator::getRootLocationPath() . 'tdbm.lock.yml';
     }
 
     public function getLockFilePath(): string

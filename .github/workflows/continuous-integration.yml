@@ -14,11 +14,11 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "8.2"
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
@@ -28,20 +28,17 @@ jobs:
           tools: "cs2pr"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
-      - name: "Run PHP-CS-Fixer on src/"
-        run: "vendor/bin/php-cs-fixer fix src/ --dry-run --stop-on-violation --format=checkstyle | cs2pr"
-
-      - name: "Run PHP-CS-Fixer on tests/"
-        run: "vendor/bin/php-cs-fixer fix tests/ --dry-run --stop-on-violation --format=checkstyle | cs2pr"
+      - name: "Run PHP-CS-Fixer"
+        run: "vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --format=checkstyle | cs2pr"
 
   require-checker:
     name: "Composer require checker"
@@ -50,11 +47,11 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "8.2"
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
@@ -64,69 +61,17 @@ jobs:
           tools: "cs2pr"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run require-checker"
         run: "composer require-checker"
-
-  phpunit-mysql57:
-    name: "PHPUnit on MySQL 5.7 and PhpStan"
-    runs-on: "ubuntu-latest"
-
-    strategy:
-      matrix:
-        php-version:
-          - "7.4"
-
-    services:
-      mysql:
-        image: "mysql:5.7"
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: true
-          MYSQL_ROOT_PASSWORD:
-        ports:
-          - "3306:3306"
-
-    steps:
-      - name: "Checkout"
-        uses: "actions/checkout@v2"
-        with:
-          fetch-depth: 2
-
-      - name: "Install PHP"
-        uses: "shivammathur/setup-php@v2"
-        with:
-          php-version: "${{ matrix.php-version }}"
-          extensions: ""
-          coverage: "pcov"
-          tools: "cs2pr"
-
-      - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
-        with:
-          path: "~/.composer/cache"
-          key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
-          restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
-
-      - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
-
-      - name: "Run PHPUnit"
-        run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
-
-      - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
-
-      # PHPStan is run after PHPUnit because we want to analyze the generated files too.
-      - name: "Run a static analysis with phpstan/phpstan"
-        run: "composer phpstan -- --error-format=checkstyle | cs2pr"
 
   phpunit-mysql8:
     name: "PHPUnit on MySQL 8"
@@ -135,8 +80,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
-          - "8.0"
+          - "8.2"
 
     services:
       mysql:
@@ -149,7 +93,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -161,20 +105,20 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
 
   phpunit-prefer-lowest:
     name: "PHPUnit with prefer-lowest"
@@ -183,7 +127,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "8.2"
 
     services:
       mysql:
@@ -196,7 +140,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -208,20 +152,20 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer update --no-interaction --no-progress --no-suggest --prefer-lowest"
+        run: "composer update --no-interaction --no-progress --prefer-lowest"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.mysql8.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
 
   phpunit-mariadb105:
     name: "PHPUnit on MariaDB 10.5"
@@ -230,7 +174,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "8.2"
 
     services:
       mysql:
@@ -242,7 +186,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -254,20 +198,20 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.mariadb.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
 
   phpunit-postgresql:
     name: "PHPUnit on PostgreSQL"
@@ -276,7 +220,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "8.2"
 
     services:
       postgres:
@@ -293,7 +237,7 @@ jobs:
           --health-retries 5
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 2
 
@@ -305,20 +249,20 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.postgres.github.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"
 
   phpunit-phpbench:
     name: "PHPBench"
@@ -327,7 +271,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "8.2"
 
     services:
       mysql:
@@ -340,7 +284,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
         with:
           fetch-depth: 0
 
@@ -352,14 +296,14 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Running PHPBench on current branch"
         run: "./phpbench.dist.sh run --tag=current_pr --store"
@@ -370,7 +314,7 @@ jobs:
       - name: "Switching to master branch"
         run: "git checkout master"
 
-      - name: "Updating dependencies"
+      - name: "Install master dependencies"
         run: "composer update"
 
       - name: "Running PHPBENCH on master, Generating Report (RESULTS ARE INVERTED AS MASTER IS RUN AFTER CURRENT)"
@@ -379,11 +323,14 @@ jobs:
   phpunit-oci8:
     name: "PHPUnit on OCI8"
     runs-on: "ubuntu-latest"
+    # disabled due to issue on doctrine/dbal with Oracle, see https://github.com/doctrine/dbal/issues/6764#issuecomment-2781153676
+    # TODO: re-enable after doctrine/dbal 4 (or 5) upgrade
+    if: false
 
     strategy:
       matrix:
         php-version:
-          - "7.4"
+          - "8.2"
 
     services:
       oracle:
@@ -393,7 +340,7 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v4"
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
@@ -403,17 +350,17 @@ jobs:
           coverage: "pcov"
 
       - name: "Cache dependencies installed with composer"
-        uses: "actions/cache@v1"
+        uses: "actions/cache@v4"
         with:
           path: "~/.composer/cache"
           key: "php-${{ matrix.php-version }}-composer-locked-${{ hashFiles('composer.lock') }}"
           restore-keys: "php-${{ matrix.php-version }}-composer-locked-"
 
       - name: "Install dependencies with composer"
-        run: "composer install --no-interaction --no-progress --no-suggest"
+        run: "composer install --no-interaction --no-progress"
 
       - name: "Run PHPUnit"
         run: "vendor/bin/phpunit -c phpunit.oracle.xml --coverage-clover=coverage.xml"
 
       - name: "Upload Code Coverage"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v5"

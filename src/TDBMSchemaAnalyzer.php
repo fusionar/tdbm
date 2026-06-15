@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace TheCodingMachine\TDBM;
 
-use BrainDiminished\SchemaVersionControl\SchemaVersionControlService;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Types\DateType;
-use Doctrine\DBAL\Types\Type;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
-use TheCodingMachine\TDBM\Utils\ImmutableCaster;
+
+use function hash;
+use function serialize;
 
 /**
  * This class is used to analyze the schema and return valuable information / hints.
@@ -69,11 +67,7 @@ class TDBMSchemaAnalyzer
      */
     public function getCachePrefix(): string
     {
-        if ($this->cachePrefix === null) {
-            $this->cachePrefix = hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
-        }
-
-        return $this->cachePrefix;
+        return $this->cachePrefix ??= hash('md4', serialize($this->connection->getParams()));
     }
 
     /**
@@ -98,7 +92,7 @@ class TDBMSchemaAnalyzer
     public function generateLockFile(): void
     {
         $this->schemaLockFileDumper->generateLockFile();
-        \chmod($this->getLockFilePath(), 0664);
+        \chmod($this->getLockFilePath(), 0o664);
     }
 
     /**
@@ -110,7 +104,7 @@ class TDBMSchemaAnalyzer
      */
     public function getPivotTableLinkedToTable(string $tableName): array
     {
-        $cacheKey = $this->getCachePrefix().'_pivottables_link_'.$tableName;
+        $cacheKey = $this->getCachePrefix() . '_pivottables_link_' . $tableName;
         if ($this->cache->contains($cacheKey)) {
             return $this->cache->fetch($cacheKey);
         }
@@ -143,9 +137,7 @@ class TDBMSchemaAnalyzer
     public function getIncomingForeignKeys(string $tableName): array
     {
         $junctionTables = $this->schemaAnalyzer->detectJunctionTables(true);
-        $junctionTableNames = array_map(function (Table $table) {
-            return $table->getName();
-        }, $junctionTables);
+        $junctionTableNames = array_map(fn(Table $table) => $table->getName(), $junctionTables);
         $childrenRelationships = $this->schemaAnalyzer->getChildrenRelationships($tableName);
 
         $fks = [];

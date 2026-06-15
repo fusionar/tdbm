@@ -25,8 +25,7 @@ namespace TheCodingMachine\TDBM;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\DBAL\Platforms\MySQL57Platform;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Ramsey\Uuid\Uuid;
@@ -97,8 +96,6 @@ use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
 use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Symfony\Component\Process\Process;
 
-use function get_class;
-
 class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
 {
     /** @var TDBMDaoGenerator $tdbmDaoGenerator */
@@ -109,7 +106,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     protected function setUp(): void
     {
         parent::setUp();
-        $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
+        $schemaManager = $this->tdbmService->getConnection()->createSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $schemaLockFileDumper = new SchemaLockFileDumper($this->tdbmService->getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
@@ -118,7 +115,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         //$this->tdbmDaoGenerator->setComposerFile($this->rootPath.'composer.json');
     }
 
-    public function testGetSchemaCrashWithoutLock()
+    public function testGetSchemaCrashWithoutLock(): void
     {
         //let's delete the lock file
         $schemaFilePath = Configuration::getDefaultLockFilePath();
@@ -126,7 +123,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
             unlink($schemaFilePath);
         }
         //let's check we cannot call get schema without a lock file
-        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->getSchemaManager(), new ArrayCache(), 'prefix_');
+        $schemaAnalyzer = new SchemaAnalyzer(self::getConnection()->createSchemaManager(), new ArrayCache(), 'prefix_');
         $schemaLockFileDumper = new SchemaLockFileDumper(self::getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer(self::getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
         $this->expectException('TheCodingMachine\TDBM\TDBMException');
@@ -137,7 +134,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         // Remove all previously generated files.
         $this->recursiveDelete($this->rootPath . 'src/Test/Dao/');
-        mkdir($this->rootPath . 'src/Test/Dao/Generated', 0755, true);
+        mkdir($this->rootPath . 'src/Test/Dao/Generated', 0o755, true);
         // Let's generate a dummy file to see it is indeed removed.
         $dummyFile = $this->rootPath . 'src/Test/Dao/Generated/foobar.php';
         touch($dummyFile);
@@ -182,7 +179,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     {
         $configuration = new Configuration('UnknownVendor\\Dao', 'UnknownVendor\\Bean', self::getConnection(), $this->getNamingStrategy());
 
-        $schemaManager = $this->tdbmService->getConnection()->getSchemaManager();
+        $schemaManager = $this->tdbmService->getConnection()->createSchemaManager();
         $schemaAnalyzer = new SchemaAnalyzer($schemaManager);
         $schemaLockFileDumper = new SchemaLockFileDumper($this->tdbmService->getConnection(), new ArrayCache(), Configuration::getDefaultLockFilePath());
         $tdbmSchemaAnalyzer = new TDBMSchemaAnalyzer($this->tdbmService->getConnection(), new ArrayCache(), $schemaAnalyzer, $schemaLockFileDumper);
@@ -890,7 +887,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertEquals('bill.shakespeare', $userDecoded['login']);
 
         // test serialization of dates.
-        $this->assertTrue(is_string($userDecoded['createdAt']));
+        $this->assertIsString($userDecoded['createdAt']);
         $this->assertEquals('2015-10-24', (new \DateTimeImmutable($userDecoded['createdAt']))->format('Y-m-d'));
         $this->assertNull($userDecoded['modifiedAt']);
 
@@ -1632,7 +1629,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $allNullableDao->save($allNullable);
         $id = $allNullable->getId();
 
-        $this->assertTrue(is_int($id));
+        $this->assertIsInt($id);
     }
 
     /**
@@ -1715,7 +1712,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         // Let's insert a row without telling TDBM to trigger an error!
         self::insert($this->getConnection(), 'sailed_countries', [
             'boat_id' => 1,
-            'country_id' => 2
+            'country_id' => 2,
         ]);
 
         $boatBean->addCountry($countryDao->getById(2));
@@ -2126,7 +2123,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $pinkFloyd = $artists->getById(1);
         $children = $pinkFloyd->getChildrenByArtistsRelations();
 
-        $this->assertEquals(1, count($children));
+        $this->assertCount(1, $children);
         $this->assertEquals(2, $children[0]->getId());
     }
 
@@ -2191,7 +2188,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testOptionnalParametersCanBeNullInFindOneBy()
+    public function testOptionnalParametersCanBeNullInFindOneBy(): void
     {
         $albumDao = new AlbumDao($this->tdbmService);
         $artist = new ArtistBean('Marcel');
@@ -2203,7 +2200,7 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
     /**
      * @depends testDaoGeneration
      */
-    public function testRequiredParametersCannotBeNullInFindOneBy()
+    public function testRequiredParametersCannotBeNullInFindOneBy(): void
     {
         $albumDao = new AlbumDao($this->tdbmService);
         $artist = new ArtistBean('Marcel');
@@ -2358,24 +2355,20 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $player = new PlayerBean([
             'id' => 1,
             'name' => 'Sally',
-            'games_played' =>
-                [
-                    'Battlefield' =>
-                        [
-                            'weapon' => 'sniper rifle',
-                            'rank' => 'Sergeant V',
-                            'level' => 20,
-                        ],
-                    'Crazy Tennis' =>
-                        [
-                            'won' => 4,
-                            'lost' => 1,
-                        ],
-                    'Puzzler' =>
-                        [
-                            'time' => 7,
-                        ],
+            'games_played' => [
+                'Battlefield' => [
+                    'weapon' => 'sniper rifle',
+                    'rank' => 'Sergeant V',
+                    'level' => 20,
                 ],
+                'Crazy Tennis' => [
+                    'won' => 4,
+                    'lost' => 1,
+                ],
+                'Puzzler' => [
+                    'time' => 7,
+                ],
+            ],
         ]);
 
         $dao->save($player);
@@ -2406,6 +2399,65 @@ class TDBMDaoGeneratorTest extends TDBMAbstractServiceTest
         $this->assertSame(1, $accessible->getAdd());
         $this->assertCount(1, $value->getAccessible());
         $this->assertCount(1, $accessible->getValues());
+    }
+
+    public function testHydrateLazyLoadedBean(): void
+    {
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $country = $countryDao->getById(1, true);
+        $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $country->_getStatus());
+        $countryDao->findByIds([1])->toArray(); // This `->toArray` consumes the iterator and hence resolves the objects
+        $this->assertSame(TDBMObjectStateEnum::STATE_LOADED, $country->_getStatus());
+    }
+
+    public function testHydrateNotLoadedBeanReference(): void
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $users = $userDao->findAll()->toArray();
+        $countriesIds = [];
+        foreach ($users as $user) {
+            assert($user instanceof UserBean);
+            $countriesIds[] = $user->getCountry()->getId();
+            $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $user->getCountry()->_getStatus());
+        }
+
+        $countryDao->findByIds($countriesIds)->toArray(); // This `->toArray` consumes the iterator and hence resolves the objects
+        foreach ($users as $user) {
+            assert($user instanceof UserBean);
+            $this->assertSame(TDBMObjectStateEnum::STATE_LOADED, $user->getCountry()->_getStatus());
+        }
+    }
+
+    public function testHydrateNotLoadedBeans(): void
+    {
+        $userDao = new UserDao($this->tdbmService);
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $users = $userDao->findAll()->toArray();
+        $countriesIds = [];
+        foreach ($users as $user) {
+            assert($user instanceof UserBean);
+            $countriesIds[] = $user->getCountry()->getId();
+            $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $user->getCountry()->_getStatus());
+        }
+
+        $countries = $countryDao->findByIds($countriesIds);
+        foreach ($countries as $country) {
+            assert($country instanceof CountryBean);
+            $this->assertSame(TDBMObjectStateEnum::STATE_LOADED, $country->_getStatus());
+        }
+    }
+
+    public function testHydrateGetByIdAfterLazyLoad(): void
+    {
+        // FIXME: It is not trivial to fix as `\TheCodingMachine\TDBM\TDBMService::findObjectOrFail` creates its own bean.
+        //    Hence, any existing reference to the original bean won't get the change.
+        $this->markTestIncomplete('Test is failing because we retrieve the bean from the storage and do not hydrate it');
+        $countryDao = new TestCountryDao($this->tdbmService);
+        $country = $countryDao->getById(1, true);
+        $this->assertSame(TDBMObjectStateEnum::STATE_NOT_LOADED, $country->_getStatus());
+        $country = $countryDao->getById(1);
+        $this->assertSame(TDBMObjectStateEnum::STATE_LOADED, $country->_getStatus()); // This is failing
     }
 
     private function skipOracle(): void

@@ -1,23 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM;
 
-use BrainDiminished\SchemaVersionControl\SchemaVersionControlService;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Schema\Table;
-use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
+use TheCodingMachine\TDBM\SchemaVersionControl\SchemaVersionControlService;
 use TheCodingMachine\TDBM\Utils\ColumnsReorderer;
 use TheCodingMachine\TDBM\Utils\ImmutableCaster;
 
-use function array_map;
-use function array_values;
 use function file_exists;
 use function hash;
-use function implode;
-use function in_array;
+use function serialize;
 
 /**
  * Load / save schema in the tdbm.lock file.
@@ -67,11 +63,7 @@ class SchemaLockFileDumper
      */
     public function getCachePrefix(): string
     {
-        if ($this->cachePrefix === null) {
-            $this->cachePrefix = hash('md4', $this->connection->getHost().'-'.$this->connection->getPort().'-'.$this->connection->getDatabase().'-'.$this->connection->getDriver()->getName());
-        }
-
-        return $this->cachePrefix;
+        return $this->cachePrefix ??= hash('md4', serialize($this->connection->getParams()));
     }
 
     public function getLockFilePath(): string
@@ -85,7 +77,7 @@ class SchemaLockFileDumper
     public function getSchema(bool $ignoreCache = false): Schema
     {
         if ($this->schema === null) {
-            $cacheKey = $this->getCachePrefix().'_immutable_schema';
+            $cacheKey = $this->getCachePrefix() . '_immutable_schema';
             if (!$ignoreCache && $this->cache->contains($cacheKey)) {
                 $this->schema = $this->cache->fetch($cacheKey);
             } elseif (!file_exists($this->getLockFilePath())) {
@@ -104,6 +96,6 @@ class SchemaLockFileDumper
     public function generateLockFile(): void
     {
         $this->schemaVersionControlService->dumpSchema();
-        \chmod($this->getLockFilePath(), 0664);
+        \chmod($this->getLockFilePath(), 0o664);
     }
 }

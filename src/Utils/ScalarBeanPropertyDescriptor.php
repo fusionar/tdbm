@@ -8,6 +8,7 @@ use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use TheCodingMachine\TDBM\TDBMException;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Annotations;
@@ -166,7 +167,7 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
                 if ($default !== null && in_array(strtoupper($default), ['CURRENT_TIMESTAMP' /* MySQL */, 'NOW()' /* PostgreSQL */, 'SYSDATE' /* Oracle */ , 'CURRENT_TIMESTAMP()' /* MariaDB 10.3 */], true)) {
                     $defaultCode = 'new \DateTimeImmutable()';
                 } else {
-                    throw new TDBMException('Unable to set default value for date in "'.$this->table->getName().'.'.$this->column->getName().'". Database passed this default value: "'.$default.'"');
+                    throw new TDBMException('Unable to set default value for date in "' . $this->table->getName() . '.' . $this->column->getName() . '". Database passed this default value: "' . $default . '"');
                 }
             } else {
                 $defaultValue = $type->convertToPHPValue($this->column->getDefault(), new MySQL57Platform());
@@ -228,10 +229,10 @@ class ScalarBeanPropertyDescriptor extends AbstractBeanPropertyDescriptor
                 $checkNullable = sprintf('$%s !== null && ', $variableName);
             }
             $resourceTypeCheck .= <<<EOF
-if (%s!\is_resource($%s)) {
-    throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
-}
-EOF;
+                if (%s!\is_resource($%s)) {
+                    throw \TheCodingMachine\TDBM\TDBMInvalidArgumentException::badType('resource', $%s, __METHOD__);
+                }
+                EOF;
             $resourceTypeCheck = sprintf($resourceTypeCheck, $checkNullable, $variableName, $variableName);
         }
 
@@ -242,7 +243,7 @@ EOF;
 
         $paramType = null;
         if ($this->isTypeHintable()) {
-            $paramType = ($isNullable ? '?' : '').$normalizedType;
+            $paramType = ($isNullable ? '?' : '') . $normalizedType;
         }
 
         $getter = new MethodGenerator($columnGetterName);
@@ -338,9 +339,7 @@ $this->set(%s, $%s, %s);',
                             break;
                         }
                     }
-                    $args = array_map(function ($v) {
-                        return var_export($v, true);
-                    }, $args);
+                    $args = array_map(fn($v) => var_export($v, true), $args);
                     $args = empty($args) ? '' : ', ' . implode(', ', $args);
                     $unit = $jsonFormat->unit ? ' . ' . var_export($jsonFormat->unit, true) : '';
                     if ($this->column->getNotnull()) {
@@ -388,8 +387,8 @@ $this->set(%s, $%s, %s);',
         $type = $this->column->getType();
 
         $unserialisableTypes = [
-            Type::BLOB,
-            Type::BINARY
+            Types::BLOB,
+            Types::BINARY,
         ];
 
         return \in_array($type->getName(), $unserialisableTypes, true) === false;
@@ -404,7 +403,7 @@ $this->set(%s, $%s, %s);',
     {
         $type = $this->getPhpType();
         $invalidScalarTypes = [
-            'resource'
+            'resource',
         ];
 
         return \in_array($type, $invalidScalarTypes, true) === false;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheCodingMachine\TDBM;
 
 use Iterator;
@@ -15,7 +17,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return mixed Can return any type.
      * @since 5.0.0
      */
-    public function current()
+    public function current(): mixed
     {
         return null;
     }
@@ -26,9 +28,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function next()
-    {
-    }
+    public function next(): void {}
 
     /**
      * Return the key of the current element
@@ -36,7 +36,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return mixed scalar on success, or null on failure.
      * @since 5.0.0
      */
-    public function key()
+    public function key(): mixed
     {
         return null;
     }
@@ -48,7 +48,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * Returns true on success or false on failure.
      * @since 5.0.0
      */
-    public function valid()
+    public function valid(): bool
     {
         return false;
     }
@@ -59,9 +59,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function rewind()
-    {
-    }
+    public function rewind(): void {}
 
     /**
      * Whether a offset exists
@@ -75,7 +73,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * The return value will be casted to boolean if non-boolean was returned.
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return false;
     }
@@ -89,9 +87,9 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return mixed Can return all value types.
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
-        throw new TDBMInvalidOffsetException('Offset "'.$offset.'" does not exist in result set.');
+        throw new TDBMInvalidOffsetException('Offset "' . $offset . '" does not exist in result set.');
     }
 
     /**
@@ -106,7 +104,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return void
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new TDBMInvalidOperationException('You cannot set values in a TDBM result set.');
     }
@@ -120,7 +118,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * @return void
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new TDBMInvalidOperationException('You cannot unset values in a TDBM result set.');
     }
@@ -134,7 +132,7 @@ class EmptyInnerResultIterator implements Iterator, InnerResultIteratorInterface
      * The return value is cast to an integer.
      * @since 5.1.0
      */
-    public function count()
+    public function count(): int
     {
         return 0;
     }
